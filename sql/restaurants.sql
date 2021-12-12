@@ -1,7 +1,9 @@
-CREATE TABLE restaurants
+CREATE TABLE gw.restaurants
 (
-    id   INT         NOT NULL AUTO_INCREMENT,
-    uuid VARCHAR(64) NOT NULL,
-    name VARCHAR(64) NOT NULL,
+    id     INT         NOT NULL AUTO_INCREMENT,
+    name   VARCHAR(64) NOT NULL,
+    login  VARCHAR(64) NOT NULL,
+    tg_key VARCHAR(64) NOT NULL,
+
     PRIMARY KEY (id)
 );

@@ -28,10 +28,50 @@ func InitKube() {
 	for _, n := range nodeList.Items {
 		log.Get().Println(n.Name)
 	}
+}
 
-	CreatePod("mysql", []v1.EnvVar{{
-		Name:      "MYSQL_ROOT_PASSWORD",
-		Value:     "root",
-		ValueFrom: nil,
-	}})
+func AddBot(key string, login string) {
+	clientset.CoreV1().Pods("default").Create(
+		context.Background(),
+		&v1.Pod{
+			TypeMeta: metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      login,
+				Namespace: "default",
+			},
+			Spec: v1.PodSpec{
+				Containers: []v1.Container{{
+					Name:  login,
+					Image: "vladimish/client:1.0",
+					Ports: []v1.ContainerPort{
+						{
+							Name:          "",
+							ContainerPort: 1721,
+							Protocol:      "TCP",
+						},
+					},
+					Env: []v1.EnvVar{
+						{
+							Name:  "DB_USER",
+							Value: "root",
+						},
+						{
+							Name:  "DB_PASS",
+							Value: "root",
+						},
+						{
+							Name:  "DB_ADDR",
+							Value: "localhost:3306",
+						},
+						{
+							Name:  "TG_KEY",
+							Value: key,
+						},
+					},
+				}},
+				RestartPolicy: "Always",
+			},
+		},
+		metav1.CreateOptions{},
+	)
 }
