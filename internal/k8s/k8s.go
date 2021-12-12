@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 	"github.com/vladimish/hack-gateway/pkg/log"
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -31,69 +32,81 @@ func InitKube() {
 }
 
 func AddBot(key string, login string) error {
-	p, err := clientset.CoreV1().Pods("default").Create(
+	var one = int32(1)
+	_, err := clientset.AppsV1().Deployments("default").Create(
 		context.Background(),
-		&v1.Pod{
-			TypeMeta: metav1.TypeMeta{},
+		&appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      login,
-				Namespace: "default",
+				Name:   login + "-deployment",
+				Labels: map[string]string{"app": login},
 			},
-			Spec: v1.PodSpec{
-				Containers: []v1.Container{
-					{Name: login,
-						Image: "vladimish/client-db:1.0",
-						Ports: []v1.ContainerPort{
-							{
-								HostPort:      30001,
-								ContainerPort: 3306,
-								Protocol:      "TCP",
-							},
-						},
-						Env: []v1.EnvVar{
-							{
-								Name:  "MARIADB_ROOT_PASSWORD",
-								Value: "root",
-							},
-						},
+			Spec: appsv1.DeploymentSpec{
+				Replicas: &one,
+				Selector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"app": login},
+				},
+				Template: v1.PodTemplateSpec{
+					ObjectMeta: metav1.ObjectMeta{
+						Labels: map[string]string{"app": login},
 					},
-					{
-						Name:  login,
-						Image: "vladimish/client:1.0",
-						Ports: []v1.ContainerPort{
-							{
-								ContainerPort: 1721,
-								Protocol:      "TCP",
-							},
-						},
-						Env: []v1.EnvVar{
-							{
-								Name:  "DB_USER",
-								Value: "root",
-							},
-							{
-								Name:  "DB_PASS",
-								Value: "root",
-							},
-							{
-								Name:  "DB_ADDR",
-								Value: "localhost:3306",
+					Spec: v1.PodSpec{
+						Containers: []v1.Container{
+							{Name: login + "-db",
+								Image: "vladimish/client-db:1.0",
+								Ports: []v1.ContainerPort{
+									{
+										HostPort:      30001,
+										ContainerPort: 3306,
+										Protocol:      "TCP",
+									},
+								},
+								Env: []v1.EnvVar{
+									{
+										Name:  "MARIADB_ROOT_PASSWORD",
+										Value: "root",
+									},
+								},
 							},
 							{
-								Name:  "TG_KEY",
-								Value: key,
-							},
-						},
-					}},
-				RestartPolicy: "Always",
+								Name:  login,
+								Image: "vladimish/client:1.0",
+								Ports: []v1.ContainerPort{
+									{
+										ContainerPort: 1721,
+										Protocol:      "TCP",
+									},
+								},
+								Env: []v1.EnvVar{
+									{
+										Name:  "DB_USER",
+										Value: "root",
+									},
+									{
+										Name:  "DB_PASS",
+										Value: "root",
+									},
+									{
+										Name:  "DB_ADDR",
+										Value: "localhost:3306",
+									},
+									{
+										Name:  "TG_KEY",
+										Value: key,
+									},
+								},
+							}},
+						RestartPolicy: "Always",
+					},
+				},
 			},
+			Status: appsv1.DeploymentStatus{},
 		},
 		metav1.CreateOptions{},
 	)
+
 	if err != nil {
 		return err
 	}
-	log.Get().Info(p.Status)
 
 	return nil
 }
