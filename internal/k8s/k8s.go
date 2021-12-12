@@ -83,7 +83,7 @@ func AddBot(key string, login string, nodePort int32) error {
 								Image: "vladimish/client-db:1.0",
 								Ports: []v1.ContainerPort{
 									{
-										HostPort:      30001,
+										HostPort:      nodePort,
 										ContainerPort: 3306,
 										Protocol:      "TCP",
 									},
