@@ -7,3 +7,6 @@ CREATE TABLE gw.restaurants
 
     PRIMARY KEY (id)
 );
+
+ALTER TABLE gw.restaurants
+    AUTO_INCREMENT = 30001;

@@ -7,12 +7,15 @@ import (
 )
 
 func HandleAddRestaurant(req requests.AddRestaurant) error {
-	key, err := db.GetDB().CreateRestaurant(req.Name, req.Login)
+	key, port, err := db.GetDB().CreateRestaurant(req.Name, req.Login)
 	if err != nil {
 		return err
 	}
 
-	k8s.AddBot(key, req.Login)
+	err = k8s.AddBot(key, req.Login, port)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
