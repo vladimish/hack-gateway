@@ -6,12 +6,26 @@ import (
 )
 
 func (db *DB) CreateRestaurant(name string, login string) (string, error) {
-	squery := "DELETE FROM gw.`keys` WHERE tg_key IN (SELECT tg_key FROM gw.`keys` LIMIT 1);"
+	squery := "SELECT id, tg_key FROM gw.`keys`;"
 	var key string
-	err := db.db.QueryRow(squery).Scan(&key)
+	var id int
+	rows, err := db.db.Query(squery)
 	if err != nil {
 		return "", err
 	}
+	for rows.Next() {
+		rows.Scan(&id, &key)
+		break
+	}
+	rows.Close()
+
+	fmt.Println(key)
+	dquery := fmt.Sprintf("DELETE FROM gw.`keys` WHERE id=%d;", id)
+	_, err = db.db.Exec(dquery)
+	if err != nil {
+		return "", err
+	}
+
 	if len(key) == 0 {
 		return "", errors.New("keys ended")
 	}
