@@ -36,3 +36,9 @@ func (db *DB) CreateRestaurant(name string, login string) (string, int32, error)
 	}
 	return key, int32(id), nil
 }
+
+func (db *DB) GetRestaurant(login string) (id int, err error) {
+	query := fmt.Sprintf("SELECT id FROM gw.restaurants WHERE login='%s';", login)
+	err = db.db.QueryRow(query).Scan(&id)
+	return id, err
+}

@@ -7,6 +7,7 @@ type Config struct {
 	DBUser  string
 	DBPass  string
 	DBAddr  string
+	K8SAddr string
 }
 
 var cfg Config
@@ -35,5 +36,10 @@ func init() {
 	cfg.DBAddr, res = os.LookupEnv("DB_ADDR")
 	if !res {
 		panic("Variable DB_ADDR is not defined.")
+	}
+
+	cfg.K8SAddr, res = os.LookupEnv("K8S_ADDR")
+	if !res {
+		panic("Variable K8S_ADDR is not defined.")
 	}
 }

@@ -28,5 +28,37 @@ func StartApi() {
 		}
 		return nil
 	})
+
+	app.Post("/add_table", func(c *fiber.Ctx) error {
+		req := requests.AddTable{}
+		err := json.Unmarshal(c.Body(), &req)
+		if err != nil {
+			return err
+		}
+		err = handlers.HandleAddTable(req)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	app.Post("/get_tables", func(c *fiber.Ctx) error {
+		req := requests.GetTables{}
+		err := json.Unmarshal(c.Body(), &req)
+		if err != nil {
+			return err
+		}
+		body, err := handlers.HandleGetTables(req)
+		if err != nil {
+			return err
+		}
+		_, err = c.Write(body)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	app.Listen(":3000")
 }
