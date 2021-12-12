@@ -43,6 +43,20 @@ func StartApi() {
 		return nil
 	})
 
+	app.Post("/delete_table", func(c *fiber.Ctx) error {
+		req := requests.DeleteTable{}
+		err := json.Unmarshal(c.Body(), &req)
+		if err != nil {
+			return err
+		}
+		err = handlers.HandleDeleteTable(req)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	app.Post("/get_tables", func(c *fiber.Ctx) error {
 		req := requests.GetTables{}
 		err := json.Unmarshal(c.Body(), &req)
