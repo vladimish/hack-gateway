@@ -30,8 +30,8 @@ func InitKube() {
 	}
 }
 
-func AddBot(key string, login string) {
-	clientset.CoreV1().Pods("default").Create(
+func AddBot(key string, login string) error {
+	p, err := clientset.CoreV1().Pods("default").Create(
 		context.Background(),
 		&v1.Pod{
 			TypeMeta: metav1.TypeMeta{},
@@ -40,38 +40,60 @@ func AddBot(key string, login string) {
 				Namespace: "default",
 			},
 			Spec: v1.PodSpec{
-				Containers: []v1.Container{{
-					Name:  login,
-					Image: "vladimish/client:1.0",
-					Ports: []v1.ContainerPort{
-						{
-							Name:          "",
-							ContainerPort: 1721,
-							Protocol:      "TCP",
+				Containers: []v1.Container{
+					{Name: login,
+						Image: "vladimish/client-db:1.0",
+						Ports: []v1.ContainerPort{
+							{
+								HostPort:      30001,
+								ContainerPort: 3306,
+								Protocol:      "TCP",
+							},
+						},
+						Env: []v1.EnvVar{
+							{
+								Name:  "MARIADB_ROOT_PASSWORD",
+								Value: "root",
+							},
 						},
 					},
-					Env: []v1.EnvVar{
-						{
-							Name:  "DB_USER",
-							Value: "root",
+					{
+						Name:  login,
+						Image: "vladimish/client:1.0",
+						Ports: []v1.ContainerPort{
+							{
+								ContainerPort: 1721,
+								Protocol:      "TCP",
+							},
 						},
-						{
-							Name:  "DB_PASS",
-							Value: "root",
+						Env: []v1.EnvVar{
+							{
+								Name:  "DB_USER",
+								Value: "root",
+							},
+							{
+								Name:  "DB_PASS",
+								Value: "root",
+							},
+							{
+								Name:  "DB_ADDR",
+								Value: "localhost:3306",
+							},
+							{
+								Name:  "TG_KEY",
+								Value: key,
+							},
 						},
-						{
-							Name:  "DB_ADDR",
-							Value: "localhost:3306",
-						},
-						{
-							Name:  "TG_KEY",
-							Value: key,
-						},
-					},
-				}},
+					}},
 				RestartPolicy: "Always",
 			},
 		},
 		metav1.CreateOptions{},
 	)
+	if err != nil {
+		return err
+	}
+	log.Get().Info(p.Status)
+
+	return nil
 }
